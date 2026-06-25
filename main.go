@@ -118,6 +118,7 @@ func openBranch(projectName, branch string, isRemote bool) {
 	}
 
 	worktreePath := hop.WorktreePath(projectName, branch)
+	fmt.Printf("hop: creating worktree for %s (large repos may take a while)…\n", branch)
 	if err := hop.CreateWorktree(repoPath, branch, worktreePath, isRemote); err != nil {
 		fail(err)
 	}

@@ -2,6 +2,7 @@ package hop
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -111,8 +112,11 @@ func CreateWorktree(repoPath, branch, worktreePath string, isRemote bool) error 
 	} else {
 		cmd = exec.Command("git", "-C", repoPath, "worktree", "add", worktreePath, branch)
 	}
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("creating worktree: %s", string(out))
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("creating worktree: %w", err)
 	}
 	return nil
 }

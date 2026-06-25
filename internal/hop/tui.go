@@ -94,7 +94,7 @@ func (m ProjectPickerModel) View() string {
 	filtered := m.filtered()
 	for i, name := range filtered {
 		line := "  " + name
-		if name == m.projects[m.adjustedCursor(i)] {
+		if i == m.cursor {
 			line = styleSelected.Render(line)
 		}
 		b.WriteString(line)
@@ -117,21 +117,6 @@ func filterLine(filter string) string {
 
 func (m ProjectPickerModel) filtered() []string {
 	return fuzzyFilter(m.filter, m.projects)
-}
-
-func (m ProjectPickerModel) adjustedCursor(listIdx int) int {
-	actualIdx := -1
-	count := -1
-	for i := range m.projects {
-		if fuzzyMatch(m.filter, m.projects[i]) {
-			count++
-			if count == listIdx {
-				actualIdx = i
-				break
-			}
-		}
-	}
-	return actualIdx
 }
 
 func fuzzyMatch(query, target string) bool {
