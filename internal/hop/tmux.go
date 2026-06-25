@@ -37,7 +37,7 @@ func CreateProjectSession(name, cwd, project, branch string) error {
 	}
 
 	exec.Command("tmux", "set-option", "-t", name, "status-left", StatusLabel(project, branch)).Run()
-	exec.Command("tmux", "send-keys", "-t", name+":ai", "opencode", "Enter").Run()
+	exec.Command("tmux", "send-keys", "-t", name+":ai", "claude", "Enter").Run()
 	exec.Command("tmux", "send-keys", "-t", name+":git", "lazygit", "Enter").Run()
 	exec.Command("tmux", "select-window", "-t", name+":ai").Run()
 
