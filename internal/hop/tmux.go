@@ -15,7 +15,7 @@ func SessionExists(name string) bool {
 }
 
 func CreateProjectSession(name, cwd, project, branch string) error {
-	create := exec.Command("tmux", "new-session", "-d", "-s", name, "-c", cwd, "-n", "ai")
+	create := exec.Command("tmux", "new-session", "-d", "-s", name, "-c", cwd, "-n", "ai", launchCmd(cwd, "claude"))
 	if out, err := create.CombinedOutput(); err != nil {
 		return fmt.Errorf("creating session: %s", string(out))
 	}
@@ -32,16 +32,24 @@ func CreateProjectSession(name, cwd, project, branch string) error {
 	}
 	exec.Command("tmux", "select-layout", "-t", name+":dev", "even-horizontal").Run()
 
-	if err := exec.Command("tmux", "new-window", "-t", name, "-n", "git", "-c", cwd).Run(); err != nil {
+	if err := exec.Command("tmux", "new-window", "-t", name, "-n", "git", "-c", cwd, launchCmd(cwd, "lazygit")).Run(); err != nil {
 		return fmt.Errorf("creating git window: %w", err)
 	}
 
 	exec.Command("tmux", "set-option", "-t", name, "status-left", StatusLabel(project, branch)).Run()
-	exec.Command("tmux", "send-keys", "-t", name+":ai", "claude", "Enter").Run()
-	exec.Command("tmux", "send-keys", "-t", name+":git", "lazygit", "Enter").Run()
 	exec.Command("tmux", "select-window", "-t", name+":ai").Run()
 
 	return nil
+}
+
+// launchCmd builds the command a window starts with. It runs prog inside the
+// directory's direnv environment so a flake/devShell PATH is honored, then
+// drops to an interactive shell when prog exits. Running prog as the window's
+// command (rather than typing it with send-keys) avoids a race where the
+// keystrokes land before the shell and direnv have finished loading, which
+// otherwise resolves prog against the base PATH instead of the devShell.
+func launchCmd(cwd, prog string) string {
+	return fmt.Sprintf(`if command -v direnv >/dev/null 2>&1; then direnv exec %q %s; else %s; fi; exec "$SHELL"`, cwd, prog, prog)
 }
 
 func CreateScratchSession(name string) error {
